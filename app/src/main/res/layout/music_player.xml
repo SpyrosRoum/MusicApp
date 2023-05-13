@@ -54,7 +54,7 @@
             android:orientation="horizontal">
 
             <ImageButton
-                android:id="@+id/imageButton3"
+                android:id="@+id/shuffle_button"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="10dp"
@@ -102,7 +102,7 @@
             </LinearLayout>
 
             <ImageButton
-                android:id="@+id/imageButton5"
+                android:id="@+id/loop_button"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="20dp"
