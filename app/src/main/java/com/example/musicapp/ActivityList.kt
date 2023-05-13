@@ -1,26 +1,27 @@
 package com.example.musicapp
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
+import android.provider.MediaStore
+import android.net.Uri
 
 class ActivityList : AppCompatActivity() {
-
     private lateinit var recyclerView: RecyclerView
     private lateinit var viewAdapter: RecyclerView.Adapter<*>
     private lateinit var viewManager: RecyclerView.LayoutManager
+    private lateinit var songsList: ArrayList<Song>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
+        songsList = getSongs()
+
         viewManager = LinearLayoutManager(this)
-        viewAdapter = MyAdapter(myDataset)
+        viewAdapter = SongsAdapter(songsList)
+
 
         recyclerView = findViewById<RecyclerView>(R.id.RecyclerView).apply {
             setHasFixedSize(true)
@@ -28,28 +29,42 @@ class ActivityList : AppCompatActivity() {
             adapter = viewAdapter
         }
     }
-}
 
-class MyAdapter(private val myDataset: Array<String>) :
-    RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
+    private fun getSongs() : ArrayList<Song> {
+        val songs = ArrayList<Song>()
 
-    class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.song_thumbnail)
-        val songName: TextView = itemView.findViewById(R.id.song_title)
-        val artistName: TextView = itemView.findViewById(R.id.song_artist)
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        val wantedColumns = arrayOf(
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA, // For Image
+                MediaStore.Audio.Media.ARTIST,
+        )
+
+        val songsCursor = contentResolver.query(
+                uri,
+                wantedColumns,
+                null,
+                null,
+                MediaStore.Audio.Media.DISPLAY_NAME
+        ) ?: return songs
+
+        songsCursor.moveToFirst()
+        do {
+            val songName = songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+            val artistName =
+                    songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
+            val albumName = songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
+            val imageUrl =
+                     Uri.parse(songsCursor.getString(songsCursor.getColumnIndexOrThrow((MediaStore.Audio.Media.DATA))))
+            val duration =
+                    songsCursor.getDouble(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+
+            songs.add(Song(songName, imageUrl, artistName, albumName, duration))
+        } while (songsCursor.moveToNext())
+
+        songsCursor.close()
+        return songs
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.song_thumbnails, parent, false)
-
-        return MyViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.textView.text = myDataset[position]
-        // here you could also change the image of your ImageView, based on your dataset
-    }
-
-    override fun getItemCount() = myDataset.size
 }
