@@ -1,13 +1,12 @@
 package com.example.musicapp
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_list)
-
-
+        startActivity(Intent(this, SongList::class.java))
     }
 }
