@@ -108,10 +108,14 @@ class SongList : AppCompatActivity() {
                 this,
                 Manifest.permission.READ_MEDIA_AUDIO
             ) == PackageManager.PERMISSION_GRANTED
-        ) return
+        ) {
+            Log.i(TAG, "Got permissions")
+            return
+        }
 
         ActivityCompat.requestPermissions(
             this, arrayOf(Manifest.permission.READ_MEDIA_AUDIO), PERMISSIONS_REQUEST_CODE
         )
+        Log.i(TAG, "Requested permissions")
     }
 }
