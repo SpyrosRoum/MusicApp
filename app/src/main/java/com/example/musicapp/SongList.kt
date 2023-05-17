@@ -8,10 +8,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.provider.MediaStore
 import android.net.Uri
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-class ActivityList : AppCompatActivity() {
+class SongList : AppCompatActivity() {
+    private companion object {
+        var TAG = "ActivityList"
+    }
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var viewAdapter: RecyclerView.Adapter<*>
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -19,12 +24,22 @@ class ActivityList : AppCompatActivity() {
     private val PERMISSIONS_REQUEST_CODE = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.i(TAG, "ActivityList Created")
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
         checkPermissions()
 
-        songsList = getSongs()
+        songsList = try {
+            getSongs()
+        } catch (e: SongCursorException) {
+            Log.e(TAG, "Opening cursor failed", e)
+            ArrayList()
+        } catch (_: NoSongsFoundException) {
+            Log.w(TAG, "No Songs found")
+            ArrayList()
+        }
 
         viewManager = LinearLayoutManager(this)
         viewAdapter = SongsAdapter(songsList)
@@ -37,10 +52,14 @@ class ActivityList : AppCompatActivity() {
         }
     }
 
+    /**
+     * Get the list of songs found on the phone
+     */
     private fun getSongs(): ArrayList<Song> {
         val songs = ArrayList<Song>()
 
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        // What columns we want from the DB
         val wantedColumns = arrayOf(
             MediaStore.Audio.Media.DISPLAY_NAME,
             MediaStore.Audio.Media.ALBUM,
@@ -54,10 +73,15 @@ class ActivityList : AppCompatActivity() {
             wantedColumns,
             null,
             null,
-            MediaStore.Audio.Media.DISPLAY_NAME
-        ) ?: return songs
+            MediaStore.Audio.Media.DISPLAY_NAME  // How to sort the resulting rows
+        ) ?: throw SongCursorException("Failed to get song cursor")
 
-        songsCursor.moveToFirst()
+        if (!songsCursor.moveToFirst()) {
+            // There are no songs
+            songsCursor.close()
+            throw NoSongsFoundException()
+        }
+
         do {
             val songName =
                 songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
@@ -74,6 +98,7 @@ class ActivityList : AppCompatActivity() {
         } while (songsCursor.moveToNext())
 
         songsCursor.close()
+        Log.d(TAG, "Found: "+ songs.count() + " songs")
         return songs
     }
 
