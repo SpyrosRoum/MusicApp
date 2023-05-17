@@ -2,7 +2,7 @@ package com.example.musicapp
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-
+import android.Manifest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -98,42 +98,20 @@ class SongList : AppCompatActivity() {
         } while (songsCursor.moveToNext())
 
         songsCursor.close()
-        Log.d(TAG, "Found: "+ songs.count() + " songs")
+        Log.d(TAG, "Found: " + songs.count() + " songs")
         return songs
     }
 
     private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) // TODO not finding permissions
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
+        if (
+            ContextCompat.checkSelfPermission(
                 this,
-                arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
-                PERMISSIONS_REQUEST_CODE
-            )
-        } else {
-            // Permission has already been granted
-            getSongs()
-        }
-    }
+                Manifest.permission.READ_MEDIA_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) return
 
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            PERMISSIONS_REQUEST_CODE -> {
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // Permission was granted
-                    getSongs()
-                } else {
-                    // Permission denied
-                    Toast.makeText(this, "Permission denied to read your External storage", Toast)
-                }
-            }
-        }
+        ActivityCompat.requestPermissions(
+            this, arrayOf(Manifest.permission.READ_MEDIA_AUDIO), PERMISSIONS_REQUEST_CODE
+        )
     }
 }
