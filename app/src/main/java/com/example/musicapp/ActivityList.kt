@@ -78,12 +78,12 @@ class ActivityList : AppCompatActivity() {
     }
 
     private fun checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) // TODO not finding permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) // TODO not finding permissions
             != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                arrayOf(Manifest.permission.READ_MEDIA_AUDIO),
                 PERMISSIONS_REQUEST_CODE
             )
         } else {
@@ -92,8 +92,8 @@ class ActivityList : AppCompatActivity() {
         }
     }
 
-    @Override
-    fun onRequestPermissionsResult(
+
+    override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
