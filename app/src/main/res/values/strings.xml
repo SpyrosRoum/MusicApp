@@ -4,4 +4,8 @@
     <string name="permission_required">Audio and Image access is required to run the app</string>
     <string name="ok">OK</string>
     <string name="permission_granted">Permission is granted. You can use the app now.</string>
+    <string name="Album_name">TextView</string>
+    <string name="Artist">TextView</string>
+    <string name="Title">TextView</string>
+    <string name="default_image">Default Image</string>
 </resources>

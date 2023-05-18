@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:layout_width="399dp"
@@ -11,20 +11,22 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="8dp"
+        android:elevation="10dp"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        tools:ignore="MissingConstraints">
 
         <ImageView
             android:id="@+id/song_thumbnail"
             android:layout_width="99dp"
             android:layout_height="wrap_content"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/music_disc_with_music_note" />
+            app:srcCompat="@drawable/music_disc_with_music_note"
+            android:contentDescription="@string/default_image" />
 
         <LinearLayout
-            android:layout_width="200dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical">
@@ -34,15 +36,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:text="TextView"
-                android:textAlignment="textStart" />
+                android:text="@string/Title"
+                android:textAlignment="textStart"
+                tools:ignore="NestedWeights" />
 
             <TextView
                 android:id="@+id/song_artist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="TextView"
+                android:text="@string/Artist"
                 android:textAlignment="textStart"
                 android:textColor="@color/material_dynamic_neutral_variant10" />
 
@@ -51,7 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0"
-                android:text="TextView" />
+                android:text="@string/Album_name" />
         </LinearLayout>
     </LinearLayout>
 
