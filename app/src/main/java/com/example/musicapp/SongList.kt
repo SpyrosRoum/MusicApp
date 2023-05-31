@@ -6,15 +6,13 @@ import android.Manifest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
-import android.provider.MediaStore
-import android.net.Uri
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class SongList : AppCompatActivity() {
     private companion object {
-        var TAG = "ActivityList"
+        private const val TAG = "ActivityList"
     }
 
     private lateinit var recyclerView: RecyclerView
@@ -32,7 +30,7 @@ class SongList : AppCompatActivity() {
         checkPermissions()
 
         songsList = try {
-            getSongs()
+            getSongs(contentResolver)
         } catch (e: SongCursorException) {
             Log.e(TAG, "Opening cursor failed", e)
             ArrayList()
@@ -42,7 +40,7 @@ class SongList : AppCompatActivity() {
         }
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = SongsAdapter(songsList)
+        viewAdapter = SongsAdapter(songsList, this)
 
 
         recyclerView = findViewById<RecyclerView>(R.id.RecyclerView).apply {
@@ -50,56 +48,6 @@ class SongList : AppCompatActivity() {
             layoutManager = viewManager
             adapter = viewAdapter
         }
-    }
-
-    /**
-     * Get the list of songs found on the phone
-     */
-    private fun getSongs(): ArrayList<Song> {
-        val songs = ArrayList<Song>()
-
-        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        // What columns we want from the DB
-        val wantedColumns = arrayOf(
-            MediaStore.Audio.Media.DISPLAY_NAME,
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.DATA, // For Image
-            MediaStore.Audio.Media.ARTIST,
-        )
-
-        val songsCursor = contentResolver.query(
-            uri,
-            wantedColumns,
-            null,
-            null,
-            MediaStore.Audio.Media.DISPLAY_NAME  // How to sort the resulting rows
-        ) ?: throw SongCursorException("Failed to get song cursor")
-
-        if (!songsCursor.moveToFirst()) {
-            // There are no songs
-            songsCursor.close()
-            throw NoSongsFoundException()
-        }
-
-        do {
-            val songName =
-                songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-            val artistName =
-                songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
-            val albumName =
-                songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
-            val imageUrl =
-                Uri.parse(songsCursor.getString(songsCursor.getColumnIndexOrThrow((MediaStore.Audio.Media.DATA))))
-            val duration =
-                songsCursor.getDouble(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
-
-            songs.add(Song(songName, imageUrl, artistName, albumName, duration))
-        } while (songsCursor.moveToNext())
-
-        songsCursor.close()
-        Log.d(TAG, "Found: " + songs.count() + " songs")
-        return songs
     }
 
     private fun checkPermissions() {
