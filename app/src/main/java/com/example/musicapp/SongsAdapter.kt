@@ -1,5 +1,7 @@
 package com.example.musicapp
 
+import android.content.Context
+import android.content.Intent
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 
-class SongsAdapter(private val songs: ArrayList<Song>) :
+class SongsAdapter(private val songs: ArrayList<Song>, private val ctx: Context) :
     RecyclerView.Adapter<SongsAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,6 +32,12 @@ class SongsAdapter(private val songs: ArrayList<Song>) :
         holder.songName.text = songs[position].name
         holder.artistName.text = songs[position].artist
         holder.albumName.text = songs[position].album
+
+        holder.itemView.setOnClickListener {
+            val intent = Intent(ctx, SongPlayer::class.java)
+            intent.putExtra("songIndex", position)
+            ctx.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = songs.size
