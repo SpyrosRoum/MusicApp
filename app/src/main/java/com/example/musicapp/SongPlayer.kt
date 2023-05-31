@@ -39,6 +39,19 @@ class SongPlayer : AppCompatActivity() {
         songsList = getSongs(contentResolver)
         currentSong = songsList[songIndex]
 
+        // Syncing widgets with variables
+        songImage = findViewById(R.id.playing_song_image)
+        songTitle = findViewById(R.id.playing_song_title)
+        songArtist = findViewById(R.id.playing_song_artist)
+        previousButton = findViewById(R.id.previous_song)
+        nextButton = findViewById(R.id.next_song)
+        playPauseButton = findViewById(R.id.play_pause)
+        shuffleButton = findViewById(R.id.shuffle_button)
+        loopButton = findViewById(R.id.loop_button)
+        seekBar = findViewById(R.id.playing_bar)
+        currentTimestamp = findViewById(R.id.current_duration)
+        songDuration = findViewById(R.id.total_duration)
+
         Log.i(TAG, "Starting player with song #$songIndex: $currentSong")
     }
 }
