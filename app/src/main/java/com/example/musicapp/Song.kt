@@ -8,4 +8,6 @@ data class Song(
     val artist: String,
     val album: String,
     val duration: Double,
-)
+) {
+    val mediaId = image.toString()
+}

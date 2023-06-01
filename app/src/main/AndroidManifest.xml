@@ -31,6 +31,15 @@
 
         <activity android:name=".SongPlayer" />
 
+
+        <service
+            android:name=".SongPlayerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
+
 
 </manifest>
