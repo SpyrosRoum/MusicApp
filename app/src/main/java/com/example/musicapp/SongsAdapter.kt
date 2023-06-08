@@ -36,7 +36,7 @@ class SongsAdapter(private val songs: List<MediaItem>, private val ctx: Context)
 
         holder.itemView.setOnClickListener {
             val intent = Intent(ctx, SongPlayer::class.java)
-            intent.putExtra("songIndex", position)
+            intent.putExtra("mediaId", songs[position].mediaId)
             ctx.startActivity(intent)
         }
     }

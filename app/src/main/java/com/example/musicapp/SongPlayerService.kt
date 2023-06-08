@@ -92,4 +92,14 @@ class SongPlayerService : MediaBrowserServiceCompat() {
             release()
         }
     }
+
+    override fun onLoadItem(itemId: String?, result: Result<MediaItem>) {
+        if (itemId == null) {
+            result.sendResult(null)
+            return
+        }
+
+        val mediaItem = songList.find { it.mediaId == itemId }
+        result.sendResult(mediaItem)
+    }
 }
