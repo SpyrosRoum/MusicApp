@@ -18,6 +18,7 @@ fun getSongs(contentResolver: ContentResolver): ArrayList<Song> {
         MediaStore.Audio.Media.DURATION,
         MediaStore.Audio.Media.DATA, // For Image
         MediaStore.Audio.Media.ARTIST,
+        MediaStore.Audio.Media._ID,
     )
 
     val songsCursor = contentResolver.query(
@@ -45,8 +46,10 @@ fun getSongs(contentResolver: ContentResolver): ArrayList<Song> {
             Uri.parse(songsCursor.getString(songsCursor.getColumnIndexOrThrow((MediaStore.Audio.Media.DATA))))
         val duration =
             songsCursor.getDouble(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+        val mediaId =
+            songsCursor.getLong(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
 
-        songs.add(Song(songName, imageUrl, artistName, albumName, duration))
+        songs.add(Song(mediaId.toString(), songName, imageUrl, artistName, albumName, duration))
     } while (songsCursor.moveToNext())
 
     songsCursor.close()

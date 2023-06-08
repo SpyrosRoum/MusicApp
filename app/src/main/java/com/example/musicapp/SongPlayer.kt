@@ -64,7 +64,6 @@ class SongPlayer : AppCompatActivity() {
     }
 
     private fun playSong(mediaId: String) {
-        Log.i(TAG, "Starting to play")
         mediaBrowser.getItem(mediaId, object : MediaBrowserCompat.ItemCallback() {
             override fun onItemLoaded(item: MediaBrowserCompat.MediaItem?) {
                 Log.i(TAG, "Loaded item")
