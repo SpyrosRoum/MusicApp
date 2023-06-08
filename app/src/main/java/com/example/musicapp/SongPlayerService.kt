@@ -2,7 +2,6 @@ package com.example.musicapp
 
 
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -76,7 +75,7 @@ class SongPlayerService : MediaBrowserServiceCompat() {
 
     override fun onLoadChildren(
         parentMediaId: String,
-        result: Result<List<MediaBrowserCompat.MediaItem>>
+        result: Result<List<MediaItem>>
     ) {
         if (parentMediaId != MEDIA_ROOT_ID) {
             // We only support the root media id

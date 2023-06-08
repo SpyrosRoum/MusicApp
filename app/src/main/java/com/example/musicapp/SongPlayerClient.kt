@@ -1,0 +1,110 @@
+package com.example.musicapp
+
+
+import android.content.ComponentName
+import android.media.AudioManager
+import android.os.Bundle
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+
+class SongPlayerClient : AppCompatActivity() {
+    private companion object {
+        const val TAG = "SongList"
+    }
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var viewAdapter: RecyclerView.Adapter<*>
+    private lateinit var viewManager: RecyclerView.LayoutManager
+
+    private lateinit var mediaBrowser: MediaBrowserCompat
+
+    private val connectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
+
+        override fun onConnected() {
+            // Get the token for the MediaSession
+            mediaBrowser.sessionToken.also { token ->
+                // Create a MediaControllerCompat
+                val mediaController = MediaControllerCompat(
+                    this@SongPlayerClient, // Context
+                    token
+                )
+                // Save the controller
+                MediaControllerCompat.setMediaController(this@SongPlayerClient, mediaController)
+            }
+
+            mediaBrowser.subscribe(mediaBrowser.root, querySubscriptionCallback)
+        }
+
+
+        override fun onConnectionSuspended() {
+            // The Service has crashed. Disable transport controls until it automatically reconnects
+        }
+
+        override fun onConnectionFailed() {
+            // The Service has refused our connection
+        }
+    }
+
+    private var controllerCallback = object : MediaControllerCompat.Callback() {
+        override fun onSessionDestroyed() {
+            mediaBrowser.disconnect()
+            // maybe schedule a reconnection using a new MediaBrowser instance
+        }
+    }
+
+
+    private val querySubscriptionCallback = object : MediaBrowserCompat.SubscriptionCallback() {
+        override fun onChildrenLoaded(
+            parentId: String,
+            children: MutableList<MediaBrowserCompat.MediaItem>
+        ) {
+            super.onChildrenLoaded(parentId, children)
+
+            Log.i(TAG, "Got ${children.count()} songs")
+
+            viewManager = LinearLayoutManager(this@SongPlayerClient)
+            viewAdapter = SongsAdapter(children, this@SongPlayerClient)
+            recyclerView = findViewById<RecyclerView>(R.id.RecyclerView).apply {
+                setHasFixedSize(true)
+                layoutManager = viewManager
+                adapter = viewAdapter
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_list)
+
+        // Create MediaBrowserServiceCompat
+        mediaBrowser = MediaBrowserCompat(
+            this,
+            ComponentName(this, SongPlayerService::class.java),
+            connectionCallbacks,
+            null // optional Bundle
+        )
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        mediaBrowser.connect()
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        volumeControlStream = AudioManager.STREAM_MUSIC
+    }
+
+    public override fun onStop() {
+        super.onStop()
+        // (see "stay in sync with the MediaSession")
+        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
+        mediaBrowser.disconnect()
+    }
+
+}

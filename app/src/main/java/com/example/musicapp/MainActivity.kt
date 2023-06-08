@@ -7,6 +7,6 @@ import android.os.Bundle
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startActivity(Intent(this, SongList::class.java))
+        startActivity(Intent(this, SongPlayerClient::class.java))
     }
 }

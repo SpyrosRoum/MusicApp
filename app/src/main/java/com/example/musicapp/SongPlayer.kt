@@ -59,7 +59,7 @@ class SongPlayer : AppCompatActivity() {
         if (songIndex == -1) {
             // songIndex was missing, so log it and return to the song list
             Log.e(TAG, "Missing song index from intent")
-            startActivity(Intent(this, SongList::class.java))
+            startActivity(Intent(this, SongPlayerClient::class.java))
         }
 
         songsList = getSongs(contentResolver)
