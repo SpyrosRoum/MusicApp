@@ -44,7 +44,12 @@ class SongPlayerService : MediaBrowserServiceCompat() {
             setSessionToken(sessionToken)
         }
 
-        val songs = getSongs(contentResolver)
+        val songs = try {
+            getSongs(contentResolver)
+        } catch (e: NoSongsFoundException) {
+            ArrayList()
+        }
+
         songs.forEach {
             val mediaDescription = MediaDescriptionCompat.Builder()
                 .setTitle(it.name)
