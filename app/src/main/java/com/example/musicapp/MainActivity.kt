@@ -11,7 +11,10 @@ import androidx.core.content.ContextCompat
 import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
-    private val REQUEST_CODE = 1
+    private companion object {
+        const val PERMISSIONS_REQUEST_CODE = 1
+    }
+
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.READ_MEDIA_AUDIO,
@@ -26,11 +29,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (permissions.any { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }) {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE)
+        if (permissions.any {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    it
+                ) != PackageManager.PERMISSION_GRANTED
+            }) {
+            ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_CODE)
         } else {
             // You already have permission
-            startActivity(Intent(this, SongPlayerClient::class.java))
+            startActivity(Intent(this, SongList::class.java))
         }
     }
 
@@ -42,11 +50,11 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         when (requestCode) {
-            REQUEST_CODE -> {
+            PERMISSIONS_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                     // All permissions were granted, start the SongPlayerClient activity
-                    startActivity(Intent(this, SongPlayerClient::class.java))
+                    startActivity(Intent(this, SongList::class.java))
                 } else {
                     // Show a message to the user explaining why the app needs the permission
                     Toast.makeText(
