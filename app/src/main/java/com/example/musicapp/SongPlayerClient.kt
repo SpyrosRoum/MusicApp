@@ -23,6 +23,24 @@ class SongPlayerClient : AppCompatActivity() {
 
     private lateinit var mediaBrowser: MediaBrowserCompat
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_list)
+
+        // Create MediaBrowserServiceCompat
+        mediaBrowser = MediaBrowserCompat(
+            this,
+            ComponentName(this, SongPlayerService::class.java),
+            mediaBrowserConnectionCallbacks,
+            null // optional Bundle
+        )
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        mediaBrowser.connect()
+    }
+
     private val mediaBrowserConnectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
 
         override fun onConnected() {
@@ -62,24 +80,6 @@ class SongPlayerClient : AppCompatActivity() {
         override fun onConnectionFailed() {
             Log.e(TAG, "Something went wrong")
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_list)
-
-        // Create MediaBrowserServiceCompat
-        mediaBrowser = MediaBrowserCompat(
-            this,
-            ComponentName(this, SongPlayerService::class.java),
-            mediaBrowserConnectionCallbacks,
-            null // optional Bundle
-        )
-    }
-
-    public override fun onStart() {
-        super.onStart()
-        mediaBrowser.connect()
     }
 
     public override fun onStop() {

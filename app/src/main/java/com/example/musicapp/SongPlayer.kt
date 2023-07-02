@@ -35,6 +35,41 @@ class SongPlayer : AppCompatActivity() {
 
     private lateinit var mediaBrowser: MediaBrowserCompat
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.music_player)
+
+        bindWidgets()
+
+        mediaBrowser = MediaBrowserCompat(
+            this,
+            ComponentName(this, SongPlayerService::class.java),
+            mediaBrowserConnectionCallback,
+            null // optional Bundle
+        )
+
+        // We get to this screen from the song list, which means we should have the index
+        // of the selected song in the intents
+        currentMediaId = intent.getStringExtra("mediaId")
+        if (currentMediaId == null) {
+            // songIndex was missing, so log it and return to the song list
+            Log.e(TAG, "Missing song index from intent")
+            startActivity(Intent(this, SongPlayerClient::class.java))
+        }
+
+        Log.i(TAG, "Starting player with song #$currentMediaId")
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        mediaBrowser.connect()
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        volumeControlStream = AudioManager.STREAM_MUSIC
+    }
+
     private val mediaBrowserConnectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
             // Get the token for the MediaSession
@@ -112,42 +147,6 @@ class SongPlayer : AppCompatActivity() {
         seekBar = findViewById(R.id.playing_bar)
         currentTimestamp = findViewById(R.id.current_duration)
         songDuration = findViewById(R.id.total_duration)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.music_player)
-
-        bindWidgets()
-
-        mediaBrowser = MediaBrowserCompat(
-            this,
-            ComponentName(this, SongPlayerService::class.java),
-            mediaBrowserConnectionCallback,
-            null // optional Bundle
-        )
-
-
-        // We get to this screen from the song list, which means we should have the index
-        // of the selected song in the intents
-        currentMediaId = intent.getStringExtra("mediaId")
-        if (currentMediaId == null) {
-            // songIndex was missing, so log it and return to the song list
-            Log.e(TAG, "Missing song index from intent")
-            startActivity(Intent(this, SongPlayerClient::class.java))
-        }
-
-        Log.i(TAG, "Starting player with song #$currentMediaId")
-    }
-
-    public override fun onStart() {
-        super.onStart()
-        mediaBrowser.connect()
-    }
-
-    public override fun onResume() {
-        super.onResume()
-        volumeControlStream = AudioManager.STREAM_MUSIC
     }
 
     public override fun onStop() {
