@@ -34,6 +34,10 @@ class SongPlayer : AppCompatActivity() {
     private var currentMediaId: String? = null
 
     private lateinit var mediaBrowser: MediaBrowserCompat
+    private var currentImageIndex = 0
+
+    private val images = listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +121,11 @@ class SongPlayer : AppCompatActivity() {
         val mediaController = MediaControllerCompat.getMediaController(this)
         playPauseButton.apply {
             setOnClickListener {
+                // Update the index of the current image
+                currentImageIndex = (currentImageIndex + 1) % images.size
+                // Set the new image
+                playPauseButton.setImageResource(images[currentImageIndex])
+
                 mediaController.transportControls.sendCustomAction("TogglePlay", Bundle.EMPTY)
             }
         }
