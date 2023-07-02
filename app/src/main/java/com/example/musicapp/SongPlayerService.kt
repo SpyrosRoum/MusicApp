@@ -1,6 +1,7 @@
 package com.example.musicapp
 
 
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
@@ -15,11 +16,15 @@ private const val MEDIA_ROOT_ID = "empty_root_id"
 class SongPlayerService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var stateBuilder: PlaybackStateCompat.Builder
+    private lateinit var mediaPlayer: MediaPlayer
 
     private val songList: ArrayList<MediaItem> = arrayListOf()
 
     override fun onCreate() {
         super.onCreate()
+
+        mediaPlayer = MediaPlayer()
+        mediaPlayer.setOnPreparedListener { it.start() }
 
         // Create a MediaSessionCompat
         mediaSession = MediaSessionCompat(baseContext, LOG_TAG).apply {
@@ -37,8 +42,7 @@ class SongPlayerService : MediaBrowserServiceCompat() {
                 )
             setPlaybackState(stateBuilder.build())
 
-            // MySessionCallback() has methods that handle callbacks from a media controller
-            // setCallback(MySessionCallback())
+            setCallback(mediaPlayerCallbacks)
 
             // Set the session's token so that client activities can communicate with it.
             setSessionToken(sessionToken)
@@ -92,6 +96,8 @@ class SongPlayerService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
+        mediaPlayer.release()
+
         mediaSession.run {
             isActive = false
             release()
@@ -106,5 +112,33 @@ class SongPlayerService : MediaBrowserServiceCompat() {
 
         val mediaItem = songList.find { it.mediaId == itemId }
         result.sendResult(mediaItem)
+    }
+
+    private val mediaPlayerCallbacks = object : MediaSessionCompat.Callback() {
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            super.onPlayFromMediaId(mediaId, extras)
+
+            val mediaItem = songList.find { it.mediaId == mediaId }
+            mediaItem?.let {
+                val mediaUri = it.description.mediaUri ?: return
+
+                mediaPlayer.reset()
+                mediaPlayer.setDataSource(mediaUri.toString())
+                mediaPlayer.prepareAsync()
+            }
+
+        }
+
+        override fun onCustomAction(action: String?, extras: Bundle?) {
+            super.onCustomAction(action, extras)
+
+            if (action == "TogglePlay") {
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.pause()
+                } else {
+                    mediaPlayer.start()
+                }
+            }
+        }
     }
 }

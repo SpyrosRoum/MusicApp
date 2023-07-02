@@ -2,10 +2,8 @@ package com.example.musicapp
 
 
 import android.content.ComponentName
-import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.session.MediaControllerCompat
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -44,17 +42,6 @@ class SongPlayerClient : AppCompatActivity() {
     private val mediaBrowserConnectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
 
         override fun onConnected() {
-            // Get the token for the MediaSession
-            mediaBrowser.sessionToken.also { token ->
-                // Create a MediaControllerCompat
-                val mediaController = MediaControllerCompat(
-                    this@SongPlayerClient, // Context
-                    token
-                )
-                // Save the controller
-                MediaControllerCompat.setMediaController(this@SongPlayerClient, mediaController)
-            }
-
             mediaBrowser.subscribe(
                 mediaBrowser.root,
                 object : MediaBrowserCompat.SubscriptionCallback() {
@@ -74,7 +61,8 @@ class SongPlayerClient : AppCompatActivity() {
                             adapter = viewAdapter
                         }
                     }
-                })
+                }
+            )
         }
 
         override fun onConnectionFailed() {
@@ -84,13 +72,6 @@ class SongPlayerClient : AppCompatActivity() {
 
     public override fun onStop() {
         super.onStop()
-        // (see "stay in sync with the MediaSession")
-        MediaControllerCompat.getMediaController(this)
-            ?.unregisterCallback(object : MediaControllerCompat.Callback() {
-                override fun onSessionDestroyed() {
-                    mediaBrowser.disconnect()
-                }
-            })
         mediaBrowser.disconnect()
     }
 }

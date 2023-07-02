@@ -101,30 +101,23 @@ class SongPlayer : AppCompatActivity() {
     private fun playSong(mediaId: String) {
         mediaBrowser.getItem(mediaId, object : MediaBrowserCompat.ItemCallback() {
             override fun onItemLoaded(item: MediaBrowserCompat.MediaItem?) {
-                Log.i(TAG, "Loaded item")
-
                 super.onItemLoaded(item)
                 if (item == null) return
 
                 songTitle.text = item.description.title
                 songArtist.text = item.description.subtitle
+
+                val mediaController = MediaControllerCompat.getMediaController(this@SongPlayer)
+                mediaController.transportControls.playFromMediaId(currentMediaId, null)
             }
         })
-        val mediaController = MediaControllerCompat.getMediaController(this@SongPlayer)
-        mediaController.transportControls.playFromMediaId(currentMediaId, null)
-        mediaController.transportControls.play()
     }
 
     private fun buildMediaControls() {
         val mediaController = MediaControllerCompat.getMediaController(this)
         playPauseButton.apply {
             setOnClickListener {
-                val pbState = mediaController.playbackState.state
-                if (pbState == PlaybackStateCompat.STATE_PLAYING) {
-                    mediaController.transportControls.pause()
-                } else {
-                    mediaController.transportControls.play()
-                }
+                mediaController.transportControls.sendCustomAction("TogglePlay", Bundle.EMPTY)
             }
         }
 
