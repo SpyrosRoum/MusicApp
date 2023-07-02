@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 
-class SongPlayerClient : AppCompatActivity() {
+class SongList : AppCompatActivity() {
     private companion object {
         const val TAG = "SongList"
     }
@@ -28,7 +28,7 @@ class SongPlayerClient : AppCompatActivity() {
         // Create MediaBrowserServiceCompat
         mediaBrowser = MediaBrowserCompat(
             this,
-            ComponentName(this, SongPlayerService::class.java),
+            ComponentName(this, PlayerService::class.java),
             mediaBrowserConnectionCallbacks,
             null // optional Bundle
         )
@@ -53,8 +53,8 @@ class SongPlayerClient : AppCompatActivity() {
 
                         Log.i(TAG, "Got ${children.count()} songs")
 
-                        viewManager = LinearLayoutManager(this@SongPlayerClient)
-                        viewAdapter = SongsAdapter(children, this@SongPlayerClient)
+                        viewManager = LinearLayoutManager(this@SongList)
+                        viewAdapter = SongsAdapter(children, this@SongList)
                         recyclerView = findViewById<RecyclerView>(R.id.RecyclerView).apply {
                             setHasFixedSize(true)
                             layoutManager = viewManager

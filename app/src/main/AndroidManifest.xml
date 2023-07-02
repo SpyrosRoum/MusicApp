@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
 
     <application
@@ -28,13 +28,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".SongPlayerClient" />
+        <activity android:name=".SongList" />
 
         <activity android:name=".SongPlayer" />
 
 
         <service
-            android:name=".SongPlayerService"
+            android:name=".PlayerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />

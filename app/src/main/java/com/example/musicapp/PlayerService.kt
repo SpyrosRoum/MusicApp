@@ -1,6 +1,7 @@
 package com.example.musicapp
 
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
@@ -13,7 +14,7 @@ private const val LOG_TAG = "PlayerService"
 private const val MEDIA_ROOT_ID = "empty_root_id"
 
 
-class SongPlayerService : MediaBrowserServiceCompat() {
+class PlayerService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var stateBuilder: PlaybackStateCompat.Builder
     private lateinit var mediaPlayer: MediaPlayer

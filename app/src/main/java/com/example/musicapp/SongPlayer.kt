@@ -6,7 +6,6 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -47,7 +46,7 @@ class SongPlayer : AppCompatActivity() {
 
         mediaBrowser = MediaBrowserCompat(
             this,
-            ComponentName(this, SongPlayerService::class.java),
+            ComponentName(this, PlayerService::class.java),
             mediaBrowserConnectionCallback,
             null // optional Bundle
         )
@@ -58,7 +57,7 @@ class SongPlayer : AppCompatActivity() {
         if (currentMediaId == null) {
             // songIndex was missing, so log it and return to the song list
             Log.e(TAG, "Missing song index from intent")
-            startActivity(Intent(this, SongPlayerClient::class.java))
+            startActivity(Intent(this, SongList::class.java))
         }
 
         Log.i(TAG, "Starting player with song #$currentMediaId")
