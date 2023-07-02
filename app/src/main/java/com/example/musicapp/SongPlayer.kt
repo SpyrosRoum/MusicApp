@@ -50,6 +50,7 @@ class SongPlayer : AppCompatActivity() {
             mediaBrowserConnectionCallback,
             null // optional Bundle
         )
+        mediaBrowser.connect()
 
         // We get to this screen from the song list, which means we should have the index
         // of the selected song in the intents
@@ -65,7 +66,6 @@ class SongPlayer : AppCompatActivity() {
 
     public override fun onStart() {
         super.onStart()
-        mediaBrowser.connect()
     }
 
     public override fun onResume() {

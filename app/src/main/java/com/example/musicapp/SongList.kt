@@ -2,6 +2,7 @@ package com.example.musicapp
 
 
 import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
@@ -24,6 +25,9 @@ class SongList : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
+
+        val intent = Intent(this, PlayerService::class.java)
+        startService(intent)
 
         // Create MediaBrowserServiceCompat
         mediaBrowser = MediaBrowserCompat(
