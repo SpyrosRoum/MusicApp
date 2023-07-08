@@ -5,7 +5,9 @@ import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -37,6 +39,7 @@ class SongPlayer : AppCompatActivity() {
 
     private val images = listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
 
+    private val mediaController get() = MediaControllerCompat.getMediaController(this@SongPlayer)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,10 +67,6 @@ class SongPlayer : AppCompatActivity() {
         Log.i(TAG, "Starting player with song #$currentMediaId")
     }
 
-    public override fun onStart() {
-        super.onStart()
-    }
-
     public override fun onResume() {
         super.onResume()
         volumeControlStream = AudioManager.STREAM_MUSIC
@@ -86,8 +85,9 @@ class SongPlayer : AppCompatActivity() {
                 MediaControllerCompat.setMediaController(this@SongPlayer, mediaController)
             }
 
+            mediaController.registerCallback(mediaControllerCallback)
             buildMediaControls()
-            currentMediaId?.let { playSong(it) }
+            currentMediaId?.let { mediaController.transportControls.playFromMediaId(it, null) }
         }
 
         override fun onConnectionFailed() {
@@ -96,28 +96,30 @@ class SongPlayer : AppCompatActivity() {
     }
 
     private val mediaControllerCallback = object : MediaControllerCompat.Callback() {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            super.onMetadataChanged(metadata)
+
+            Log.i(TAG, "Meta: $metadata")
+            metadata?.let { buildUiFromMeta(it) }
+        }
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            super.onPlaybackStateChanged(state)
+
+            Log.i(TAG, "State: $state")
+        }
+
         override fun onSessionDestroyed() {
             mediaBrowser.disconnect()
         }
     }
 
-    private fun playSong(mediaId: String) {
-        mediaBrowser.getItem(mediaId, object : MediaBrowserCompat.ItemCallback() {
-            override fun onItemLoaded(item: MediaBrowserCompat.MediaItem?) {
-                super.onItemLoaded(item)
-                if (item == null) return
-
-                songTitle.text = item.description.title
-                songArtist.text = item.description.subtitle
-
-                val mediaController = MediaControllerCompat.getMediaController(this@SongPlayer)
-                mediaController.transportControls.playFromMediaId(currentMediaId, null)
-            }
-        })
+    private fun buildUiFromMeta(meta: MediaMetadataCompat) {
+        songTitle.text = meta.getText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE)
+        songArtist.text = meta.getText(MediaMetadataCompat.METADATA_KEY_ARTIST)
     }
 
     private fun buildMediaControls() {
-        val mediaController = MediaControllerCompat.getMediaController(this)
         playPauseButton.apply {
             setOnClickListener {
                 // Update the index of the current image
@@ -129,7 +131,25 @@ class SongPlayer : AppCompatActivity() {
             }
         }
 
-        mediaController.registerCallback(mediaControllerCallback)
+        previousButton.apply {
+            setOnClickListener {
+                mediaController.transportControls.skipToPrevious()
+
+                // Set the correct play/pause image
+                currentImageIndex = 0
+                playPauseButton.setImageResource(images[currentImageIndex])
+            }
+        }
+
+        nextButton.apply {
+            setOnClickListener {
+                mediaController.transportControls.skipToNext()
+
+                // Set the correct play/pause image
+                currentImageIndex = 0
+                playPauseButton.setImageResource(images[currentImageIndex])
+            }
+        }
     }
 
     /**

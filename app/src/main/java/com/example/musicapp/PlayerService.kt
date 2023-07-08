@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.media.MediaBrowserServiceCompat
@@ -115,18 +116,68 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private val mediaPlayerCallbacks = object : MediaSessionCompat.Callback() {
+        private var currentSong = -1
+        private var repeatQueue = true
+
+        private fun playCurrentIndex() {
+            // We assume always valid index
+            val mediaItem = songList[currentSong]
+
+            val mediaUri = mediaItem.description.mediaUri ?: return
+
+            val meta = MediaMetadataCompat.Builder()
+                .putText(
+                    MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
+                    mediaItem.description.title
+                )
+                .putText(
+                    MediaMetadataCompat.METADATA_KEY_ARTIST,
+                    mediaItem.description.subtitle
+                )
+            mediaSession.setMetadata(meta.build())
+
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(mediaUri.toString())
+            mediaPlayer.prepareAsync()
+        }
+
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             super.onPlayFromMediaId(mediaId, extras)
 
-            val mediaItem = songList.find { it.mediaId == mediaId }
-            mediaItem?.let {
-                val mediaUri = it.description.mediaUri ?: return
-
-                mediaPlayer.reset()
-                mediaPlayer.setDataSource(mediaUri.toString())
-                mediaPlayer.prepareAsync()
+            val mediaItem = songList.withIndex().find { (_i, item) -> item.mediaId == mediaId }
+            mediaItem?.let { (i, _) ->
+                currentSong = i
+                playCurrentIndex()
             }
 
+        }
+
+        override fun onSkipToNext() {
+            super.onSkipToNext()
+
+            if (currentSong == songList.size - 1) {
+                if (!repeatQueue)
+                    throw NotImplementedError("TODO: Stop player")
+
+                currentSong = 0
+            } else
+                currentSong += 1
+
+            playCurrentIndex()
+        }
+
+        override fun onSkipToPrevious() {
+            super.onSkipToPrevious()
+
+            if (currentSong == 0) {
+                if (!repeatQueue)
+                    throw NotImplementedError("TODO: Stop player")
+
+                currentSong = songList.size - 1
+            } else
+                currentSong -= 1
+
+            playCurrentIndex()
         }
 
         override fun onCustomAction(action: String?, extras: Bundle?) {
