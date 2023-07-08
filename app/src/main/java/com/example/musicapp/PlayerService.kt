@@ -8,6 +8,7 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.core.os.bundleOf
 import androidx.media.MediaBrowserServiceCompat
 
 private const val LOG_TAG = "PlayerService"
@@ -62,6 +63,11 @@ class PlayerService : MediaBrowserServiceCompat() {
                 .setDescription(it.album)
                 .setMediaUri(it.image)
                 .setMediaId(it.mediaId)
+                .setExtras(
+                    bundleOf(
+                        Pair("duration", it.durationMs)
+                    )
+                )
                 .build()
 
             val mediaItem = MediaItem(mediaDescription, MediaItem.FLAG_PLAYABLE)
@@ -133,6 +139,15 @@ class PlayerService : MediaBrowserServiceCompat() {
                 .putText(
                     MediaMetadataCompat.METADATA_KEY_ARTIST,
                     mediaItem.description.subtitle
+                )
+                .putLong(
+                    MediaMetadataCompat.METADATA_KEY_DURATION,
+                    (mediaItem.description.extras ?: bundleOf(
+                        Pair(
+                            "duration",
+                            -1L
+                        )
+                    )).getLong("duration")
                 )
             mediaSession.setMetadata(meta.build())
 

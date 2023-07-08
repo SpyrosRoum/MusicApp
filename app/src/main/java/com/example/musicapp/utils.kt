@@ -3,6 +3,8 @@ package com.example.musicapp
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * Get the list of songs found on the phone
@@ -45,7 +47,7 @@ fun getSongs(contentResolver: ContentResolver): ArrayList<Song> {
         val imageUrl =
             Uri.parse(songsCursor.getString(songsCursor.getColumnIndexOrThrow((MediaStore.Audio.Media.DATA))))
         val duration =
-            songsCursor.getDouble(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+            songsCursor.getLong(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
         val mediaId =
             songsCursor.getLong(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
 
@@ -54,4 +56,24 @@ fun getSongs(contentResolver: ContentResolver): ArrayList<Song> {
 
     songsCursor.close()
     return songs
+}
+
+fun msToDurationStr(ms: Long): String {
+    val duration = ms.toDuration(DurationUnit.MILLISECONDS)
+
+    val hours = duration.inWholeHours
+    val minutes = (duration - hours.toDuration(DurationUnit.HOURS)).inWholeMinutes
+    val seconds =
+        (duration - (hours.toDuration(DurationUnit.HOURS) + minutes.toDuration(DurationUnit.MINUTES))).inWholeSeconds
+
+    val durationStr = StringBuilder()
+    if (hours > 0) {
+        durationStr.append(hours.toString())
+        durationStr.append(':')
+    }
+    durationStr.append(minutes.toString())
+    durationStr.append(':')
+    durationStr.append(seconds.toString())
+
+    return durationStr.toString()
 }

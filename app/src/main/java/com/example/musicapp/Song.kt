@@ -8,5 +8,5 @@ data class Song(
     val image: Uri,
     val artist: String,
     val album: String,
-    val duration: Double,
+    val durationMs: Long,
 )

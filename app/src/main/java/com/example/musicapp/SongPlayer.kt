@@ -14,6 +14,9 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class SongPlayer : AppCompatActivity() {
     private companion object {
@@ -117,6 +120,11 @@ class SongPlayer : AppCompatActivity() {
     private fun buildUiFromMeta(meta: MediaMetadataCompat) {
         songTitle.text = meta.getText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE)
         songArtist.text = meta.getText(MediaMetadataCompat.METADATA_KEY_ARTIST)
+
+        val durationMs = meta.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)
+        val durationStr = msToDurationStr(durationMs)
+
+        songDuration.text = durationStr
     }
 
     private fun buildMediaControls() {
