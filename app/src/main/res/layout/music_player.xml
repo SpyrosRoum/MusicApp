@@ -89,7 +89,7 @@
         app:layout_constraintTop_toTopOf="@+id/previous_song"
         app:srcCompat="@drawable/loop" />
 
-    <SeekBar
+    <com.example.musicapp.MediaSeekbar
         android:id="@+id/playing_bar"
         android:layout_width="0dp"
         android:layout_height="51dp"

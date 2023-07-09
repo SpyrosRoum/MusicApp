@@ -1,6 +1,5 @@
 package com.example.musicapp
 
-
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
@@ -17,37 +16,26 @@ private const val MEDIA_ROOT_ID = "empty_root_id"
 
 class PlayerService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var stateBuilder: PlaybackStateCompat.Builder
     private lateinit var mediaPlayer: MediaPlayer
 
     private val songList: ArrayList<MediaItem> = arrayListOf()
+
+    private var pbState = -1
 
     override fun onCreate() {
         super.onCreate()
 
         mediaPlayer = MediaPlayer()
-        mediaPlayer.setOnPreparedListener { it.start() }
+        mediaPlayer.setOnPreparedListener(mediaPlayerCallbacks)
 
         // Create a MediaSessionCompat
         mediaSession = MediaSessionCompat(baseContext, LOG_TAG).apply {
-            // Indicate what commands our service supports.
-            // Currently we support:
-            // play-pause toggle, seek, goto next/previous, repeat, and shuffle.
-            stateBuilder = PlaybackStateCompat.Builder()
-                .setActions(
-                    PlaybackStateCompat.ACTION_PLAY_PAUSE
-                            or PlaybackStateCompat.ACTION_SEEK_TO
-                            or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-                            or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                            or PlaybackStateCompat.ACTION_SET_REPEAT_MODE
-                            or PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE
-                )
-            setPlaybackState(stateBuilder.build())
-
             setCallback(mediaPlayerCallbacks)
 
             // Set the session's token so that client activities can communicate with it.
             setSessionToken(sessionToken)
+
+            isActive = true
         }
 
         val songs = try {
@@ -74,9 +62,9 @@ class PlayerService : MediaBrowserServiceCompat() {
             songList.add(mediaItem)
         }
 
-        mediaSession.isActive = true
+        // We set the state to paused because it's closer to what we support
+        updatePlayBackState(PlaybackStateCompat.STATE_PAUSED)
     }
-
 
     /**
      * We always return the root id as we don't support submenus like playlists
@@ -121,90 +109,181 @@ class PlayerService : MediaBrowserServiceCompat() {
         result.sendResult(mediaItem)
     }
 
-    private val mediaPlayerCallbacks = object : MediaSessionCompat.Callback() {
-        private var currentSong = -1
-        private var repeatQueue = true
-
-        private fun playCurrentIndex() {
-            // We assume always valid index
-            val mediaItem = songList[currentSong]
-
-            val mediaUri = mediaItem.description.mediaUri ?: return
-
-            val meta = MediaMetadataCompat.Builder()
-                .putText(
-                    MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
-                    mediaItem.description.title
+    /*
+     * Return what commands our service supports based on the current playback state
+     *
+     */
+    private fun supportedActions(): Long {
+        val commonActions = (
+                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+                        or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        or PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE
+                        or PlaybackStateCompat.ACTION_SET_REPEAT_MODE
                 )
-                .putText(
-                    MediaMetadataCompat.METADATA_KEY_ARTIST,
-                    mediaItem.description.subtitle
-                )
-                .putLong(
-                    MediaMetadataCompat.METADATA_KEY_DURATION,
-                    (mediaItem.description.extras ?: bundleOf(
-                        Pair(
-                            "duration",
-                            -1L
-                        )
-                    )).getLong("duration")
-                )
-            mediaSession.setMetadata(meta.build())
 
-            mediaPlayer.reset()
-            mediaPlayer.setDataSource(mediaUri.toString())
-            mediaPlayer.prepareAsync()
+        val additionalActions = when (pbState) {
+            PlaybackStateCompat.STATE_PLAYING -> (
+                    PlaybackStateCompat.ACTION_PAUSE
+                            or PlaybackStateCompat.ACTION_STOP
+                            or PlaybackStateCompat.ACTION_SEEK_TO
+                    )
+
+            PlaybackStateCompat.STATE_PAUSED -> (
+                    PlaybackStateCompat.ACTION_PLAY
+                            or PlaybackStateCompat.ACTION_SEEK_TO
+                            or PlaybackStateCompat.ACTION_STOP
+                    )
+
+            PlaybackStateCompat.STATE_STOPPED -> (
+                    PlaybackStateCompat.ACTION_PLAY
+                            or PlaybackStateCompat.ACTION_PAUSE
+                    )
+
+            else -> (
+                    PlaybackStateCompat.ACTION_PLAY
+                            or PlaybackStateCompat.ACTION_PLAY_PAUSE
+                            or PlaybackStateCompat.ACTION_STOP
+                            or PlaybackStateCompat.ACTION_PAUSE
+                    )
         }
 
-        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-            super.onPlayFromMediaId(mediaId, extras)
+        return commonActions or additionalActions
+    }
 
-            val mediaItem = songList.withIndex().find { (_i, item) -> item.mediaId == mediaId }
-            mediaItem?.let { (i, _) ->
-                currentSong = i
+    private fun updatePlayBackState(newState: Int) {
+        pbState = newState
+
+        val pbState = PlaybackStateCompat.Builder()
+        pbState.setState(newState, mediaPlayer.currentPosition.toLong(), 1.0f)
+            .setActions(supportedActions())
+
+        mediaSession.setPlaybackState(pbState.build())
+    }
+
+    private val mediaPlayerCallbacks =
+        object : MediaSessionCompat.Callback(), MediaPlayer.OnPreparedListener {
+            private var currentSong = -1
+            private var repeatQueue = true
+
+            private fun updateMeta() {
+                val mediaItem = songList[currentSong]
+
+                val meta = MediaMetadataCompat.Builder()
+                    .putText(
+                        MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
+                        mediaItem.description.title
+                    )
+                    .putText(
+                        MediaMetadataCompat.METADATA_KEY_ARTIST,
+                        mediaItem.description.subtitle
+                    )
+                    .putLong(
+                        MediaMetadataCompat.METADATA_KEY_DURATION,
+                        (mediaItem.description.extras ?: bundleOf(
+                            Pair(
+                                "duration",
+                                -1L
+                            )
+                        )).getLong("duration")
+                    )
+
+                mediaSession.setMetadata(meta.build())
+            }
+
+            private fun playCurrentIndex() {
+
+                // We assume always valid index
+                val mediaItem = songList[currentSong]
+
+                val mediaUri = mediaItem.description.mediaUri ?: return
+
+                updateMeta()
+                mediaPlayer.reset()
+                mediaPlayer.setDataSource(mediaUri.toString())
+                mediaPlayer.prepareAsync()
+            }
+
+            override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+                super.onPlayFromMediaId(mediaId, extras)
+
+                val mediaItem = songList.withIndex().find { (_, item) -> item.mediaId == mediaId }
+                mediaItem?.let { (i, _) ->
+                    currentSong = i
+                    playCurrentIndex()
+                }
+
+            }
+
+            override fun onSeekTo(pos: Long) {
+                super.onSeekTo(pos)
+
+                mediaPlayer.seekTo(pos.toInt())
+                // We need to update the playback state because the progress changed
+                updatePlayBackState(pbState)
+            }
+
+            override fun onSkipToNext() {
+                super.onSkipToNext()
+
+                if (currentSong == songList.size - 1) {
+                    if (!repeatQueue)
+                        throw NotImplementedError("TODO: Stop player")
+
+                    currentSong = 0
+                } else
+                    currentSong += 1
+
                 playCurrentIndex()
             }
 
-        }
+            override fun onSkipToPrevious() {
+                super.onSkipToPrevious()
 
-        override fun onSkipToNext() {
-            super.onSkipToNext()
+                if (currentSong == 0) {
+                    if (!repeatQueue)
+                        throw NotImplementedError("TODO: Stop player")
 
-            if (currentSong == songList.size - 1) {
-                if (!repeatQueue)
-                    throw NotImplementedError("TODO: Stop player")
+                    currentSong = songList.size - 1
+                } else
+                    currentSong -= 1
 
-                currentSong = 0
-            } else
-                currentSong += 1
+                playCurrentIndex()
+            }
 
-            playCurrentIndex()
-        }
+            override fun onPlay() {
+                super.onPlay()
 
-        override fun onSkipToPrevious() {
-            super.onSkipToPrevious()
-
-            if (currentSong == 0) {
-                if (!repeatQueue)
-                    throw NotImplementedError("TODO: Stop player")
-
-                currentSong = songList.size - 1
-            } else
-                currentSong -= 1
-
-            playCurrentIndex()
-        }
-
-        override fun onCustomAction(action: String?, extras: Bundle?) {
-            super.onCustomAction(action, extras)
-
-            if (action == "TogglePlay") {
-                if (mediaPlayer.isPlaying) {
-                    mediaPlayer.pause()
-                } else {
+                if (!mediaPlayer.isPlaying) {
                     mediaPlayer.start()
+                    updatePlayBackState(PlaybackStateCompat.STATE_PLAYING)
                 }
             }
+
+            override fun onPause() {
+                super.onPause()
+
+                if (mediaPlayer.isPlaying) {
+                    mediaPlayer.pause()
+                    updatePlayBackState(PlaybackStateCompat.STATE_PAUSED)
+                }
+            }
+
+            override fun onCustomAction(action: String?, extras: Bundle?) {
+                super.onCustomAction(action, extras)
+
+                if (action == "TogglePlay") {
+                    if (mediaPlayer.isPlaying) {
+                        onPause()
+                    } else {
+                        onPlay()
+                    }
+                }
+            }
+
+            override fun onPrepared(mp: MediaPlayer?) {
+                updatePlayBackState(PlaybackStateCompat.STATE_PLAYING)
+                mediaPlayer.start()
+            }
         }
-    }
 }
