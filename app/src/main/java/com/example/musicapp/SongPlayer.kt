@@ -11,12 +11,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class SongPlayer : AppCompatActivity() {
     private companion object {
@@ -31,7 +27,7 @@ class SongPlayer : AppCompatActivity() {
     private lateinit var playPauseButton: ImageButton
     private lateinit var shuffleButton: ImageButton
     private lateinit var loopButton: ImageButton
-    private lateinit var seekBar: SeekBar
+    private lateinit var seekBar: MediaSeekbar
     private lateinit var currentTimestamp: TextView
     private lateinit var songDuration: TextView
 
@@ -88,6 +84,7 @@ class SongPlayer : AppCompatActivity() {
                 MediaControllerCompat.setMediaController(this@SongPlayer, mediaController)
             }
 
+            seekBar.mediaController = mediaController
             mediaController.registerCallback(mediaControllerCallback)
             buildMediaControls()
             currentMediaId?.let { mediaController.transportControls.playFromMediaId(it, null) }
@@ -99,14 +96,14 @@ class SongPlayer : AppCompatActivity() {
     }
 
     private val mediaControllerCallback = object : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
             super.onMetadataChanged(metadata)
 
             Log.i(TAG, "Meta: $metadata")
-            metadata?.let { buildUiFromMeta(it) }
+            buildUiFromMeta(metadata)
         }
 
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
             super.onPlaybackStateChanged(state)
 
             Log.i(TAG, "State: $state")
@@ -180,9 +177,9 @@ class SongPlayer : AppCompatActivity() {
 
     public override fun onStop() {
         super.onStop()
+        seekBar.disconnectController()
         // (see "stay in sync with the MediaSession")
-        MediaControllerCompat.getMediaController(this)
-            ?.unregisterCallback(mediaControllerCallback)
+        mediaController.unregisterCallback(mediaControllerCallback)
         mediaBrowser.disconnect()
     }
 }
