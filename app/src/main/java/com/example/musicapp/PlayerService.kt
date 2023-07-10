@@ -29,6 +29,7 @@ class PlayerService : MediaBrowserServiceCompat() {
 
         mediaPlayer = MediaPlayer()
         mediaPlayer.setOnPreparedListener(mediaPlayerCallbacks)
+        mediaPlayer.setOnCompletionListener(mediaPlayerCallbacks)
 
         // Create a MediaSessionCompat
         mediaSession = MediaSessionCompat(baseContext, TAG).apply {
@@ -150,7 +151,8 @@ class PlayerService : MediaBrowserServiceCompat() {
     }
 
     private val mediaPlayerCallbacks =
-        object : MediaSessionCompat.Callback(), MediaPlayer.OnPreparedListener {
+        object : MediaSessionCompat.Callback(), MediaPlayer.OnPreparedListener,
+            MediaPlayer.OnCompletionListener {
             private var currentSong = -1
 
             // We repeat the song list by default, so we can toggle between
@@ -293,6 +295,16 @@ class PlayerService : MediaBrowserServiceCompat() {
             override fun onPrepared(mp: MediaPlayer?) {
                 updatePlayBackState(PlaybackStateCompat.STATE_PLAYING)
                 mediaPlayer.start()
+            }
+
+            override fun onCompletion(mp: MediaPlayer?) {
+                if (!repeatSong)
+                    if (currentSong == songList.size - 1)
+                        currentSong = 0
+                    else
+                        currentSong += 1
+
+                playCurrentIndex()
             }
         }
 }
