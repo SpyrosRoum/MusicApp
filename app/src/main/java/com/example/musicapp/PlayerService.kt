@@ -6,14 +6,17 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.core.os.bundleOf
 import androidx.media.MediaBrowserServiceCompat
 
-private const val LOG_TAG = "PlayerService"
-private const val MEDIA_ROOT_ID = "empty_root_id"
-
 
 class PlayerService : MediaBrowserServiceCompat() {
+    private companion object {
+        const val TAG = "PlayerService"
+        const val MEDIA_ROOT_ID = "empty_root_id"
+    }
+
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaPlayer: MediaPlayer
 
@@ -28,7 +31,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         mediaPlayer.setOnPreparedListener(mediaPlayerCallbacks)
 
         // Create a MediaSessionCompat
-        mediaSession = MediaSessionCompat(baseContext, LOG_TAG).apply {
+        mediaSession = MediaSessionCompat(baseContext, TAG).apply {
             setCallback(mediaPlayerCallbacks)
 
             // Set the session's token so that client activities can communicate with it.
@@ -149,7 +152,10 @@ class PlayerService : MediaBrowserServiceCompat() {
     private val mediaPlayerCallbacks =
         object : MediaSessionCompat.Callback(), MediaPlayer.OnPreparedListener {
             private var currentSong = -1
-            private var repeatQueue = true
+
+            // We repeat the song list by default, so we can toggle between
+            // repeating the list or repeating the one song
+            private var repeatSong = false
 
             private fun updateMeta() {
                 val mediaItem = songList[currentSong]
@@ -216,9 +222,6 @@ class PlayerService : MediaBrowserServiceCompat() {
                 super.onSkipToNext()
 
                 if (currentSong == songList.size - 1) {
-                    if (!repeatQueue)
-                        throw NotImplementedError("TODO: Stop player")
-
                     currentSong = 0
                 } else
                     currentSong += 1
@@ -229,10 +232,12 @@ class PlayerService : MediaBrowserServiceCompat() {
             override fun onSkipToPrevious() {
                 super.onSkipToPrevious()
 
-                if (currentSong == 0) {
-                    if (!repeatQueue)
-                        throw NotImplementedError("TODO: Stop player")
+                if (repeatSong || mediaPlayer.currentPosition >= 1000) {
+                    playCurrentIndex()
+                    return
+                }
 
+                if (currentSong == 0) {
                     currentSong = songList.size - 1
                 } else
                     currentSong -= 1
@@ -246,6 +251,16 @@ class PlayerService : MediaBrowserServiceCompat() {
                 if (!mediaPlayer.isPlaying) {
                     mediaPlayer.start()
                     updatePlayBackState(PlaybackStateCompat.STATE_PLAYING)
+                }
+            }
+
+            override fun onSetRepeatMode(repeatMode: Int) {
+                super.onSetRepeatMode(repeatMode)
+
+                when (repeatMode) {
+                    PlaybackStateCompat.REPEAT_MODE_ALL -> repeatSong = false
+                    PlaybackStateCompat.REPEAT_MODE_ONE -> repeatSong = true
+                    else -> Log.w(TAG, "Ignoring set repeat mode: $repeatMode")
                 }
             }
 
@@ -267,6 +282,11 @@ class PlayerService : MediaBrowserServiceCompat() {
                     } else {
                         onPlay()
                     }
+                } else if (action == "ToggleRepeat") {
+                    if (repeatSong)
+                        onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
+                    else
+                        onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
                 }
             }
 

@@ -61,13 +61,17 @@ class SongPlayer : AppCompatActivity() {
     private var currentMediaId: String? = null
 
     private lateinit var mediaBrowser: MediaBrowserCompat
-    private var currentImageIndex = 0
 
+    private var currentPlayPauseImageIndex = 0
+    private val imagesPlayPause = listOf(
+        android.R.drawable.ic_media_pause,
+        android.R.drawable.ic_media_play
+    )
 
-    private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.shufflePressed)
-    private val imagesPlayPause =
-        listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
-    private val imagesLoop = listOf(R.drawable.loop, R.drawable.androidLoopPressed)
+    private var currentRepeatImageIndex = 0
+    private val imagesLoop = listOf(R.drawable.loop, R.drawable.android_loop_pressed)
+
+    private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.shuffle_pressed)
 
     private val mediaController get() = MediaControllerCompat.getMediaController(this@SongPlayer)
 
@@ -180,9 +184,9 @@ class SongPlayer : AppCompatActivity() {
         playPauseButton.apply {
             setOnClickListener {
                 // Update the index of the current image
-                currentImageIndex = (currentImageIndex + 1) % imagesPlayPause.size
+                currentPlayPauseImageIndex = (currentPlayPauseImageIndex + 1) % imagesPlayPause.size
                 // Set the new image
-                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
+                playPauseButton.setImageResource(imagesPlayPause[currentPlayPauseImageIndex])
 
                 mediaController.transportControls.sendCustomAction("TogglePlay", Bundle.EMPTY)
             }
@@ -193,8 +197,8 @@ class SongPlayer : AppCompatActivity() {
                 mediaController.transportControls.skipToPrevious()
 
                 // Set the correct play/pause image
-                currentImageIndex = 0
-                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
+                currentPlayPauseImageIndex = 0
+                playPauseButton.setImageResource(imagesPlayPause[currentPlayPauseImageIndex])
             }
         }
 
@@ -203,28 +207,18 @@ class SongPlayer : AppCompatActivity() {
                 mediaController.transportControls.skipToNext()
 
                 // Set the correct play/pause image
-                currentImageIndex = 0
-                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
-            }
-        }
-
-        shuffleButton.apply {
-            setOnClickListener {
-                mediaController.transportControls.setShuffleMode()
-
-                // Set the correct shuffle image
-                currentImageIndex = 0
-                shuffleButton.setImageResource(imagesShuffle[currentImageIndex])
+                currentPlayPauseImageIndex = 0
+                playPauseButton.setImageResource(imagesPlayPause[currentPlayPauseImageIndex])
             }
         }
 
         loopButton.apply {
             setOnClickListener {
-                mediaController.transportControls.setRepeatMode()
+                mediaController.transportControls.sendCustomAction("ToggleRepeat", Bundle.EMPTY)
 
                 // Set the correct loop image
-                currentImageIndex = 0
-                loopButton.setImageResource(imagesLoop[currentImageIndex])
+                currentRepeatImageIndex = (currentRepeatImageIndex + 1) % imagesLoop.size
+                loopButton.setImageResource(imagesLoop[currentRepeatImageIndex])
             }
         }
     }
