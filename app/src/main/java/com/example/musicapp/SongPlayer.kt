@@ -64,10 +64,10 @@ class SongPlayer : AppCompatActivity() {
     private var currentImageIndex = 0
 
 
-    private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.shufflePressed)
+    private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.android_shuffle_pressed)
     private val imagesPlayPause =
         listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
-    private val imagesLoop = listOf(R.drawable.loop, R.drawable.androidLoopPressed)
+    private val imagesLoop = listOf(R.drawable.loop, R.drawable.android_loop_pressed)
 
     private val mediaController get() = MediaControllerCompat.getMediaController(this@SongPlayer)
 
