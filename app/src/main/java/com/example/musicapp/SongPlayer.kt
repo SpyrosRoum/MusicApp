@@ -63,7 +63,11 @@ class SongPlayer : AppCompatActivity() {
     private lateinit var mediaBrowser: MediaBrowserCompat
     private var currentImageIndex = 0
 
-    private val images = listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
+
+    private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.shufflePressed)
+    private val imagesPlayPause =
+        listOf(android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play)
+    private val imagesLoop = listOf(R.drawable.loop, R.drawable.androidLoopPressed)
 
     private val mediaController get() = MediaControllerCompat.getMediaController(this@SongPlayer)
 
@@ -176,9 +180,9 @@ class SongPlayer : AppCompatActivity() {
         playPauseButton.apply {
             setOnClickListener {
                 // Update the index of the current image
-                currentImageIndex = (currentImageIndex + 1) % images.size
+                currentImageIndex = (currentImageIndex + 1) % imagesPlayPause.size
                 // Set the new image
-                playPauseButton.setImageResource(images[currentImageIndex])
+                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
 
                 mediaController.transportControls.sendCustomAction("TogglePlay", Bundle.EMPTY)
             }
@@ -190,7 +194,7 @@ class SongPlayer : AppCompatActivity() {
 
                 // Set the correct play/pause image
                 currentImageIndex = 0
-                playPauseButton.setImageResource(images[currentImageIndex])
+                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
             }
         }
 
@@ -200,7 +204,27 @@ class SongPlayer : AppCompatActivity() {
 
                 // Set the correct play/pause image
                 currentImageIndex = 0
-                playPauseButton.setImageResource(images[currentImageIndex])
+                playPauseButton.setImageResource(imagesPlayPause[currentImageIndex])
+            }
+        }
+
+        shuffleButton.apply {
+            setOnClickListener {
+                mediaController.transportControls.setShuffleMode()
+
+                // Set the correct shuffle image
+                currentImageIndex = 0
+                shuffleButton.setImageResource(imagesShuffle[currentImageIndex])
+            }
+        }
+
+        loopButton.apply {
+            setOnClickListener {
+                mediaController.transportControls.setRepeatMode()
+
+                // Set the correct loop image
+                currentImageIndex = 0
+                loopButton.setImageResource(imagesLoop[currentImageIndex])
             }
         }
     }
