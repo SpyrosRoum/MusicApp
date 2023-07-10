@@ -2,6 +2,8 @@ package com.example.musicapp
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
@@ -29,10 +31,24 @@ class SongsAdapter(private val songs: List<MediaItem>, private val ctx: Context)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         // This method retrieves data and displays inside the view (i.e. Card) while binding
+        val song = songs[position]
 
-        holder.songName.text = songs[position].description.title
-        holder.artistName.text = songs[position].description.subtitle
-        holder.albumName.text = songs[position].description.description
+        val metadataRetriever = MediaMetadataRetriever()
+        metadataRetriever.setDataSource(null, song.description.mediaUri)
+
+        metadataRetriever.embeddedPicture?.let {
+            val bmp = BitmapFactory.decodeByteArray(
+                it,
+                0,
+                it.size
+            )
+
+            holder.imageView.setImageBitmap(bmp)
+        }
+
+        holder.songName.text = song.description.title
+        holder.artistName.text = song.description.subtitle
+        holder.albumName.text = song.description.description
 
         holder.itemView.setOnClickListener {
             val intent = Intent(ctx, SongPlayer::class.java)

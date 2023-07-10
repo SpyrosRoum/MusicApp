@@ -44,14 +44,14 @@ fun getSongs(contentResolver: ContentResolver): ArrayList<Song> {
             songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
         val albumName =
             songsCursor.getString(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
-        val imageUrl =
+        val mediaUrl =
             Uri.parse(songsCursor.getString(songsCursor.getColumnIndexOrThrow((MediaStore.Audio.Media.DATA))))
         val duration =
             songsCursor.getLong(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
         val mediaId =
             songsCursor.getLong(songsCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
 
-        songs.add(Song(mediaId.toString(), songName, imageUrl, artistName, albumName, duration))
+        songs.add(Song(mediaId.toString(), songName, mediaUrl, artistName, albumName, duration))
     } while (songsCursor.moveToNext())
 
     songsCursor.close()

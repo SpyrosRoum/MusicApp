@@ -2,7 +2,9 @@ package com.example.musicapp
 
 import android.content.ComponentName
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.media.AudioManager
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -52,6 +54,9 @@ class SongPlayer : AppCompatActivity() {
             uiThreadHandler.postDelayed(this, 1000)
         }
     }
+
+    // Used to get artwork for the current song
+    private val metadataRetriever = MediaMetadataRetriever()
 
     private var currentMediaId: String? = null
 
@@ -151,6 +156,20 @@ class SongPlayer : AppCompatActivity() {
         val durationStr = msToDurationStr(durationMs)
 
         songDuration.text = durationStr
+
+        // Set the image, if found
+        val mediaUri = meta.getText(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
+
+        metadataRetriever.setDataSource(mediaUri.toString())
+        metadataRetriever.embeddedPicture?.let {
+            val bmp = BitmapFactory.decodeByteArray(
+                it,
+                0,
+                it.size
+            )
+
+            songImage.setImageBitmap(bmp)
+        }
     }
 
     private fun buildMediaControls() {

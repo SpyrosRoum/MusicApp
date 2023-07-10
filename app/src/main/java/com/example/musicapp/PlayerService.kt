@@ -3,7 +3,6 @@ package com.example.musicapp
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -45,21 +44,7 @@ class PlayerService : MediaBrowserServiceCompat() {
         }
 
         songs.forEach {
-            val mediaDescription = MediaDescriptionCompat.Builder()
-                .setTitle(it.name)
-                .setSubtitle(it.artist)
-                .setDescription(it.album)
-                .setMediaUri(it.image)
-                .setMediaId(it.mediaId)
-                .setExtras(
-                    bundleOf(
-                        Pair("duration", it.durationMs)
-                    )
-                )
-                .build()
-
-            val mediaItem = MediaItem(mediaDescription, MediaItem.FLAG_PLAYABLE)
-            songList.add(mediaItem)
+            songList.add(it.toMediaItem())
         }
 
         // We set the state to paused because it's closer to what we support
@@ -177,6 +162,10 @@ class PlayerService : MediaBrowserServiceCompat() {
                     .putText(
                         MediaMetadataCompat.METADATA_KEY_ARTIST,
                         mediaItem.description.subtitle
+                    )
+                    .putText(
+                        MediaMetadataCompat.METADATA_KEY_MEDIA_URI,
+                        mediaItem.description.mediaUri.toString()
                     )
                     .putLong(
                         MediaMetadataCompat.METADATA_KEY_DURATION,
