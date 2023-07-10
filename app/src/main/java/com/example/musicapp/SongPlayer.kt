@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -28,8 +30,28 @@ class SongPlayer : AppCompatActivity() {
     private lateinit var shuffleButton: ImageButton
     private lateinit var loopButton: ImageButton
     private lateinit var seekBar: MediaSeekbar
-    private lateinit var currentTimestamp: TextView
+    private lateinit var currentTimestampTV: TextView
     private lateinit var songDuration: TextView
+
+    // The current ts we are at
+    private var currentTimestampMs = 0L
+
+    // A handle to the main (UI) thread so we can post jobs
+    private val uiThreadHandler = Handler(Looper.getMainLooper())
+
+    // If we have a job that updates the current ts or not
+    private var progressTsUpdating = false
+
+    // A Runnable job that updates the current ts.
+    // It also updates the corresponding TextView so it needs to run in the UI thread
+    private val progressTsUpdater = object : Runnable {
+        override fun run() {
+            currentTimestampMs += 1000
+            currentTimestampTV.text = msToDurationStr(currentTimestampMs)
+
+            uiThreadHandler.postDelayed(this, 1000)
+        }
+    }
 
     private var currentMediaId: String? = null
 
@@ -99,14 +121,21 @@ class SongPlayer : AppCompatActivity() {
         override fun onMetadataChanged(metadata: MediaMetadataCompat) {
             super.onMetadataChanged(metadata)
 
-            Log.i(TAG, "Meta: $metadata")
             buildUiFromMeta(metadata)
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
             super.onPlaybackStateChanged(state)
 
-            Log.i(TAG, "State: $state")
+            currentTimestampMs = state.position
+
+            if (state.state == PlaybackStateCompat.STATE_PLAYING && !progressTsUpdating) {
+                progressTsUpdating = true
+                uiThreadHandler.post(progressTsUpdater)
+            } else if (state.state == PlaybackStateCompat.STATE_PAUSED && progressTsUpdating) {
+                progressTsUpdating = false
+                uiThreadHandler.removeCallbacks(progressTsUpdater)
+            }
         }
 
         override fun onSessionDestroyed() {
@@ -171,7 +200,7 @@ class SongPlayer : AppCompatActivity() {
         shuffleButton = findViewById(R.id.shuffle_button)
         loopButton = findViewById(R.id.loop_button)
         seekBar = findViewById(R.id.playing_bar)
-        currentTimestamp = findViewById(R.id.current_duration)
+        currentTimestampTV = findViewById(R.id.current_duration)
         songDuration = findViewById(R.id.total_duration)
     }
 

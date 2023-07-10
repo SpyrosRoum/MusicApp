@@ -73,7 +73,7 @@ fun msToDurationStr(ms: Long): String {
     }
     durationStr.append(minutes.toString())
     durationStr.append(':')
-    durationStr.append(seconds.toString())
+    durationStr.append(seconds.toString().padStart(2, '0'))
 
     return durationStr.toString()
 }
