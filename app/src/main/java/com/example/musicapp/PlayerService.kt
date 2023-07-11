@@ -296,6 +296,13 @@ class PlayerService : MediaBrowserServiceCompat() {
             }
 
             override fun onCompletion(mp: MediaPlayer?) {
+                if (currentSongIndex == -1) {
+                    // onCompletion gets triggered when the service starts,
+                    // so to not auto-start playing we check the index
+                    // and return early if needed
+                    return
+                }
+
                 if (!repeatSong)
                     if (currentSongIndex == songList.size - 1)
                         currentSongIndex = 0
