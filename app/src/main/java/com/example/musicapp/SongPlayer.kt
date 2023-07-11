@@ -71,6 +71,7 @@ class SongPlayer : AppCompatActivity() {
     private var currentRepeatImageIndex = 0
     private val imagesLoop = listOf(R.drawable.loop, R.drawable.android_loop_pressed)
 
+    private var currentShuffleImageIndex = 0
     private val imagesShuffle = listOf(R.drawable.shuffle_1, R.drawable.shuffle_pressed)
 
     private val mediaController get() = MediaControllerCompat.getMediaController(this@SongPlayer)
@@ -219,6 +220,15 @@ class SongPlayer : AppCompatActivity() {
                 // Set the correct loop image
                 currentRepeatImageIndex = (currentRepeatImageIndex + 1) % imagesLoop.size
                 loopButton.setImageResource(imagesLoop[currentRepeatImageIndex])
+            }
+        }
+
+        shuffleButton.apply {
+            setOnClickListener {
+                mediaController.transportControls.sendCustomAction("ToggleShuffle", Bundle.EMPTY)
+
+                currentShuffleImageIndex = (currentShuffleImageIndex + 1) % imagesShuffle.size
+                shuffleButton.setImageResource(imagesLoop[currentShuffleImageIndex])
             }
         }
     }

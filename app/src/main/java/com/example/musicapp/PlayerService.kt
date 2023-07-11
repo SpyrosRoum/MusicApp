@@ -153,31 +153,40 @@ class PlayerService : MediaBrowserServiceCompat() {
     private val mediaPlayerCallbacks =
         object : MediaSessionCompat.Callback(), MediaPlayer.OnPreparedListener,
             MediaPlayer.OnCompletionListener {
-            private var currentSong = -1
+
+            // The current song index
+            private var currentSongIndex = -1
 
             // We repeat the song list by default, so we can toggle between
             // repeating the list or repeating the one song
             private var repeatSong = false
 
-            private fun updateMeta() {
-                val mediaItem = songList[currentSong]
+            // When the user toggles shuffle, we copy the songList, shuffle it and save it here.
+            // If this is null then the user doesn't want a shuffle.
+            private var shuffledQueue: List<MediaItem>? = null
 
+
+            private val currentSong: MediaItem
+                get() = (shuffledQueue ?: songList)[currentSongIndex]
+
+
+            private fun updateMeta() {
                 val meta = MediaMetadataCompat.Builder()
                     .putText(
                         MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
-                        mediaItem.description.title
+                        currentSong.description.title
                     )
                     .putText(
                         MediaMetadataCompat.METADATA_KEY_ARTIST,
-                        mediaItem.description.subtitle
+                        currentSong.description.subtitle
                     )
                     .putText(
                         MediaMetadataCompat.METADATA_KEY_MEDIA_URI,
-                        mediaItem.description.mediaUri.toString()
+                        currentSong.description.mediaUri.toString()
                     )
                     .putLong(
                         MediaMetadataCompat.METADATA_KEY_DURATION,
-                        (mediaItem.description.extras ?: bundleOf(
+                        (currentSong.description.extras ?: bundleOf(
                             Pair(
                                 "duration",
                                 -1L
@@ -189,11 +198,8 @@ class PlayerService : MediaBrowserServiceCompat() {
             }
 
             private fun playCurrentIndex() {
-
                 // We assume always valid index
-                val mediaItem = songList[currentSong]
-
-                val mediaUri = mediaItem.description.mediaUri ?: return
+                val mediaUri = currentSong.description.mediaUri ?: return
 
                 updateMeta()
                 mediaPlayer.reset()
@@ -206,7 +212,7 @@ class PlayerService : MediaBrowserServiceCompat() {
 
                 val mediaItem = songList.withIndex().find { (_, item) -> item.mediaId == mediaId }
                 mediaItem?.let { (i, _) ->
-                    currentSong = i
+                    currentSongIndex = i
                     playCurrentIndex()
                 }
 
@@ -223,10 +229,10 @@ class PlayerService : MediaBrowserServiceCompat() {
             override fun onSkipToNext() {
                 super.onSkipToNext()
 
-                if (currentSong == songList.size - 1) {
-                    currentSong = 0
+                if (currentSongIndex == songList.size - 1) {
+                    currentSongIndex = 0
                 } else
-                    currentSong += 1
+                    currentSongIndex += 1
 
                 playCurrentIndex()
             }
@@ -239,10 +245,10 @@ class PlayerService : MediaBrowserServiceCompat() {
                     return
                 }
 
-                if (currentSong == 0) {
-                    currentSong = songList.size - 1
+                if (currentSongIndex == 0) {
+                    currentSongIndex = songList.size - 1
                 } else
-                    currentSong -= 1
+                    currentSongIndex -= 1
 
                 playCurrentIndex()
             }
@@ -266,6 +272,19 @@ class PlayerService : MediaBrowserServiceCompat() {
                 }
             }
 
+            override fun onSetShuffleMode(shuffleMode: Int) {
+                super.onSetShuffleMode(shuffleMode)
+
+                when (shuffleMode) {
+                    PlaybackStateCompat.SHUFFLE_MODE_ALL -> {
+                        shuffledQueue = songList.shuffled()
+                    }
+
+                    PlaybackStateCompat.SHUFFLE_MODE_NONE -> shuffledQueue = null
+                    else -> Log.w(TAG, "Ignoring set shuffle mode: $shuffleMode")
+                }
+            }
+
             override fun onPause() {
                 super.onPause()
 
@@ -278,17 +297,29 @@ class PlayerService : MediaBrowserServiceCompat() {
             override fun onCustomAction(action: String?, extras: Bundle?) {
                 super.onCustomAction(action, extras)
 
-                if (action == "TogglePlay") {
-                    if (mediaPlayer.isPlaying) {
-                        onPause()
-                    } else {
-                        onPlay()
+                when (action) {
+                    "TogglePlay" -> {
+                        if (mediaPlayer.isPlaying)
+                            onPause()
+                        else
+                            onPlay()
                     }
-                } else if (action == "ToggleRepeat") {
-                    if (repeatSong)
-                        onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
-                    else
-                        onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
+
+                    "ToggleRepeat" -> {
+                        if (repeatSong)
+                            onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
+                        else
+                            onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
+                    }
+
+                    "ToggleShuffle" -> {
+                        if (shuffledQueue == null)
+                            onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_ALL)
+                        else
+                            onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
+                    }
+
+                    else -> Log.w(TAG, "Ignoring custom action: $action")
                 }
             }
 
@@ -299,10 +330,10 @@ class PlayerService : MediaBrowserServiceCompat() {
 
             override fun onCompletion(mp: MediaPlayer?) {
                 if (!repeatSong)
-                    if (currentSong == songList.size - 1)
-                        currentSong = 0
+                    if (currentSongIndex == songList.size - 1)
+                        currentSongIndex = 0
                     else
-                        currentSong += 1
+                        currentSongIndex += 1
 
                 playCurrentIndex()
             }
