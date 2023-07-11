@@ -64,8 +64,7 @@ class SongPlayer : AppCompatActivity() {
 
     private var currentPlayPauseImageIndex = 0
     private val imagesPlayPause = listOf(
-        android.R.drawable.ic_media_pause,
-        android.R.drawable.ic_media_play
+        android.R.drawable.ic_media_pause, android.R.drawable.ic_media_play
     )
 
     private var currentRepeatImageIndex = 0
@@ -172,9 +171,7 @@ class SongPlayer : AppCompatActivity() {
         metadataRetriever.setDataSource(mediaUri.toString())
         metadataRetriever.embeddedPicture?.let {
             val bmp = BitmapFactory.decodeByteArray(
-                it,
-                0,
-                it.size
+                it, 0, it.size
             )
 
             songImage.setImageBitmap(bmp)

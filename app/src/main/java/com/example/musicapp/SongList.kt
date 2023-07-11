@@ -46,12 +46,10 @@ class SongList : AppCompatActivity() {
     private val mediaBrowserConnectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
 
         override fun onConnected() {
-            mediaBrowser.subscribe(
-                mediaBrowser.root,
+            mediaBrowser.subscribe(mediaBrowser.root,
                 object : MediaBrowserCompat.SubscriptionCallback() {
                     override fun onChildrenLoaded(
-                        parentId: String,
-                        children: MutableList<MediaBrowserCompat.MediaItem>
+                        parentId: String, children: MutableList<MediaBrowserCompat.MediaItem>
                     ) {
                         super.onChildrenLoaded(parentId, children)
 
@@ -65,8 +63,7 @@ class SongList : AppCompatActivity() {
                             adapter = viewAdapter
                         }
                     }
-                }
-            )
+                })
         }
 
         override fun onConnectionFailed() {

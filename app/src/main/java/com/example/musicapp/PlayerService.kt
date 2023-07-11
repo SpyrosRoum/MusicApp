@@ -59,16 +59,13 @@ class PlayerService : MediaBrowserServiceCompat() {
      * We always return the root id as we don't support submenus like playlists
      */
     override fun onGetRoot(
-        clientPackageName: String,
-        clientUid: Int,
-        rootHints: Bundle?
+        clientPackageName: String, clientUid: Int, rootHints: Bundle?
     ): BrowserRoot {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
     override fun onLoadChildren(
-        parentMediaId: String,
-        result: Result<List<MediaItem>>
+        parentMediaId: String, result: Result<List<MediaItem>>
     ) {
         if (parentMediaId != MEDIA_ROOT_ID) {
             // We only support the root media id
@@ -112,29 +109,13 @@ class PlayerService : MediaBrowserServiceCompat() {
                 )
 
         val additionalActions = when (pbState) {
-            PlaybackStateCompat.STATE_PLAYING -> (
-                    PlaybackStateCompat.ACTION_PAUSE
-                            or PlaybackStateCompat.ACTION_STOP
-                            or PlaybackStateCompat.ACTION_SEEK_TO
-                    )
+            PlaybackStateCompat.STATE_PLAYING -> (PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_SEEK_TO)
 
-            PlaybackStateCompat.STATE_PAUSED -> (
-                    PlaybackStateCompat.ACTION_PLAY
-                            or PlaybackStateCompat.ACTION_SEEK_TO
-                            or PlaybackStateCompat.ACTION_STOP
-                    )
+            PlaybackStateCompat.STATE_PAUSED -> (PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_STOP)
 
-            PlaybackStateCompat.STATE_STOPPED -> (
-                    PlaybackStateCompat.ACTION_PLAY
-                            or PlaybackStateCompat.ACTION_PAUSE
-                    )
+            PlaybackStateCompat.STATE_STOPPED -> (PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE)
 
-            else -> (
-                    PlaybackStateCompat.ACTION_PLAY
-                            or PlaybackStateCompat.ACTION_PLAY_PAUSE
-                            or PlaybackStateCompat.ACTION_STOP
-                            or PlaybackStateCompat.ACTION_PAUSE
-                    )
+            else -> (PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE)
         }
 
         return commonActions or additionalActions
@@ -171,28 +152,22 @@ class PlayerService : MediaBrowserServiceCompat() {
 
 
             private fun updateMeta() {
-                val meta = MediaMetadataCompat.Builder()
-                    .putText(
-                        MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
-                        currentSong.description.title
-                    )
-                    .putText(
-                        MediaMetadataCompat.METADATA_KEY_ARTIST,
-                        currentSong.description.subtitle
-                    )
-                    .putText(
-                        MediaMetadataCompat.METADATA_KEY_MEDIA_URI,
-                        currentSong.description.mediaUri.toString()
-                    )
-                    .putLong(
-                        MediaMetadataCompat.METADATA_KEY_DURATION,
-                        (currentSong.description.extras ?: bundleOf(
-                            Pair(
-                                "duration",
-                                -1L
-                            )
-                        )).getLong("duration")
-                    )
+                val meta = MediaMetadataCompat.Builder().putText(
+                    MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE,
+                    currentSong.description.title
+                ).putText(
+                    MediaMetadataCompat.METADATA_KEY_ARTIST, currentSong.description.subtitle
+                ).putText(
+                    MediaMetadataCompat.METADATA_KEY_MEDIA_URI,
+                    currentSong.description.mediaUri.toString()
+                ).putLong(
+                    MediaMetadataCompat.METADATA_KEY_DURATION,
+                    (currentSong.description.extras ?: bundleOf(
+                        Pair(
+                            "duration", -1L
+                        )
+                    )).getLong("duration")
+                )
 
                 mediaSession.setMetadata(meta.build())
             }
@@ -231,8 +206,7 @@ class PlayerService : MediaBrowserServiceCompat() {
 
                 if (currentSongIndex == songList.size - 1) {
                     currentSongIndex = 0
-                } else
-                    currentSongIndex += 1
+                } else currentSongIndex += 1
 
                 playCurrentIndex()
             }
@@ -247,8 +221,7 @@ class PlayerService : MediaBrowserServiceCompat() {
 
                 if (currentSongIndex == 0) {
                     currentSongIndex = songList.size - 1
-                } else
-                    currentSongIndex -= 1
+                } else currentSongIndex -= 1
 
                 playCurrentIndex()
             }
@@ -299,24 +272,18 @@ class PlayerService : MediaBrowserServiceCompat() {
 
                 when (action) {
                     "TogglePlay" -> {
-                        if (mediaPlayer.isPlaying)
-                            onPause()
-                        else
-                            onPlay()
+                        if (mediaPlayer.isPlaying) onPause()
+                        else onPlay()
                     }
 
                     "ToggleRepeat" -> {
-                        if (repeatSong)
-                            onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
-                        else
-                            onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
+                        if (repeatSong) onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ALL)
+                        else onSetRepeatMode(PlaybackStateCompat.REPEAT_MODE_ONE)
                     }
 
                     "ToggleShuffle" -> {
-                        if (shuffledQueue == null)
-                            onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_ALL)
-                        else
-                            onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
+                        if (shuffledQueue == null) onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_ALL)
+                        else onSetShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
                     }
 
                     else -> Log.w(TAG, "Ignoring custom action: $action")

@@ -47,9 +47,7 @@ class MediaSeekbar : AppCompatSeekBar {
     }
 
     constructor(ctx: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
-        ctx,
-        attrs,
-        defStyleAttr
+        ctx, attrs, defStyleAttr
     ) {
         super.setOnSeekBarChangeListener(onSeekBackChangeListener)
     }
@@ -59,58 +57,57 @@ class MediaSeekbar : AppCompatSeekBar {
         mediaController = null
     }
 
-    private val controllerCallback = object :
-        MediaControllerCompat.Callback(),
-        ValueAnimator.AnimatorUpdateListener {
+    private val controllerCallback =
+        object : MediaControllerCompat.Callback(), ValueAnimator.AnimatorUpdateListener {
 
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-            super.onPlaybackStateChanged(state)
+            override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
+                super.onPlaybackStateChanged(state)
 
-            // If there's an ongoing animation, stop it now.
-            progressAnimator?.apply { cancel() }
-            progressAnimator = null
+                // If there's an ongoing animation, stop it now.
+                progressAnimator?.apply { cancel() }
+                progressAnimator = null
 
-            val progress = state.position
+                val progress = state.position
 
-            setProgress(progress.toInt())
+                setProgress(progress.toInt())
 
-            // If the media is playing then the seekbar should follow it, and the easiest
-            // way to do that is to create a ValueAnimator to update it so the bar reaches
-            // the end of the media the same time as playback gets there (or close enough).
-            if (state.state == PlaybackStateCompat.STATE_PLAYING) {
-                val timeToEnd = max - progress
+                // If the media is playing then the seekbar should follow it, and the easiest
+                // way to do that is to create a ValueAnimator to update it so the bar reaches
+                // the end of the media the same time as playback gets there (or close enough).
+                if (state.state == PlaybackStateCompat.STATE_PLAYING) {
+                    val timeToEnd = max - progress
 
-                progressAnimator = ValueAnimator.ofInt(progress.toInt(), max)
-                    .setDuration(timeToEnd)
+                    progressAnimator =
+                        ValueAnimator.ofInt(progress.toInt(), max).setDuration(timeToEnd)
 
-                val updateListener = this
-                progressAnimator?.apply {
-                    interpolator = LinearInterpolator()
-                    addUpdateListener(updateListener)
-                    start()
+                    val updateListener = this
+                    progressAnimator?.apply {
+                        interpolator = LinearInterpolator()
+                        addUpdateListener(updateListener)
+                        start()
+                    }
                 }
             }
-        }
 
-        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
-            super.onMetadataChanged(metadata)
+            override fun onMetadataChanged(metadata: MediaMetadataCompat) {
+                super.onMetadataChanged(metadata)
 
-            val m = metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
+                val m = metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION).toInt()
 
-            progress = 0
-            max = m
-        }
-
-        override fun onAnimationUpdate(animation: ValueAnimator) {
-            // If the user is changing the slider, cancel the animation.
-            if (userIsSeeking) {
-                animation.cancel()
-                return
+                progress = 0
+                max = m
             }
-            val animatedIntValue = animation.animatedValue as Int
 
-            progress = animatedIntValue
+            override fun onAnimationUpdate(animation: ValueAnimator) {
+                // If the user is changing the slider, cancel the animation.
+                if (userIsSeeking) {
+                    animation.cancel()
+                    return
+                }
+                val animatedIntValue = animation.animatedValue as Int
+
+                progress = animatedIntValue
+            }
+
         }
-
-    }
 }

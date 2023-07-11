@@ -1,14 +1,14 @@
 package com.example.musicapp
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
     private companion object {
@@ -17,8 +17,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
-            Manifest.permission.READ_MEDIA_AUDIO,
-            Manifest.permission.READ_MEDIA_IMAGES
+            Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES
         )
     } else {
         arrayOf(
@@ -31,8 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         if (permissions.any {
                 ContextCompat.checkSelfPermission(
-                    this,
-                    it
+                    this, it
                 ) != PackageManager.PERMISSION_GRANTED
             }) {
             ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_REQUEST_CODE)
@@ -43,9 +41,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
