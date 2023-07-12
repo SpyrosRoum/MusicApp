@@ -225,7 +225,7 @@ class SongPlayer : AppCompatActivity() {
                 mediaController.transportControls.sendCustomAction("ToggleShuffle", Bundle.EMPTY)
 
                 currentShuffleImageIndex = (currentShuffleImageIndex + 1) % imagesShuffle.size
-                shuffleButton.setImageResource(imagesLoop[currentShuffleImageIndex])
+                shuffleButton.setImageResource(imagesShuffle[currentShuffleImageIndex])
             }
         }
     }
