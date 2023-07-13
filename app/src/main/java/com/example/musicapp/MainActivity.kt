@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // You already have permission
             startActivity(Intent(this, SongList::class.java))
+            finish()
         }
     }
 
@@ -58,12 +59,9 @@ class MainActivity : AppCompatActivity() {
                         "This app requires certain permissions to function properly.",
                         Toast.LENGTH_LONG
                     ).show()
-
-                    // Close the app
-                    finish()
                 }
-                return
             }
         }
+        finish()
     }
 }

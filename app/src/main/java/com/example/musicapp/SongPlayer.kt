@@ -247,12 +247,4 @@ class SongPlayer : AppCompatActivity() {
         currentTimestampTV = findViewById(R.id.current_duration)
         songDuration = findViewById(R.id.total_duration)
     }
-
-    public override fun onStop() {
-        super.onStop()
-        seekBar.disconnectController()
-        // (see "stay in sync with the MediaSession")
-        mediaController.unregisterCallback(mediaControllerCallback)
-        mediaBrowser.disconnect()
-    }
 }
