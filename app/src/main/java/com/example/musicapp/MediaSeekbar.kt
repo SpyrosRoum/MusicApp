@@ -52,11 +52,6 @@ class MediaSeekbar : AppCompatSeekBar {
         super.setOnSeekBarChangeListener(onSeekBackChangeListener)
     }
 
-    fun disconnectController() {
-        mediaController?.run { unregisterCallback(controllerCallback) }
-        mediaController = null
-    }
-
     private val controllerCallback =
         object : MediaControllerCompat.Callback(), ValueAnimator.AnimatorUpdateListener {
 
