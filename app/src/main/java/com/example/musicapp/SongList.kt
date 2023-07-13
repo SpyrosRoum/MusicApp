@@ -1,6 +1,5 @@
 package com.example.musicapp
 
-
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -46,8 +45,11 @@ class SongList : AppCompatActivity() {
     private val mediaBrowserConnectionCallbacks = object : MediaBrowserCompat.ConnectionCallback() {
 
         override fun onConnected() {
+            // When mediaBrowser connects to the service, we request the songs that are in the root
             mediaBrowser.subscribe(mediaBrowser.root,
                 object : MediaBrowserCompat.SubscriptionCallback() {
+                    // When the list of songs is ready `onChildrenLoaded` gets called,
+                    // which simply takes the songs and builds the UI
                     override fun onChildrenLoaded(
                         parentId: String, children: MutableList<MediaBrowserCompat.MediaItem>
                     ) {

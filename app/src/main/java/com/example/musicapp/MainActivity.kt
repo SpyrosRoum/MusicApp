@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             PERMISSIONS_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                    // All permissions were granted, start the SongPlayerClient activity
+                    // All permissions were granted, start the SongPlayer activity
                     startActivity(Intent(this, SongList::class.java))
                 } else {
                     // Show a message to the user explaining why the app needs the permission
@@ -63,10 +63,6 @@ class MainActivity : AppCompatActivity() {
                     finish()
                 }
                 return
-            }
-
-            else -> {
-                // Ignore all other requests.
             }
         }
     }
